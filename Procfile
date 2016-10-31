@@ -1,1 +1,1 @@
-web: mars-rover-twitter-bot
+worker: bin/mars-rover-twitter-bot_linux

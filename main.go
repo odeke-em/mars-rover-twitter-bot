@@ -54,6 +54,7 @@ func init() {
 	if err != nil {
 		exitOnError(err)
 	}
+	roverClient.SetAPIKey(os.Getenv("NASA_API_KEY"))
 
 	if len(initErrMsgList) > 0 {
 		msg := fmt.Sprintf("Errors Encountered:\n%s", strings.Join(initErrMsgList, "\n"))
