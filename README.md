@@ -5,7 +5,7 @@ Mars Rover Photos Twitter bot
 ```shell
 $ go get github.com/odeke-em/mars-rover-twitter-bot
 $ mars-rover-twitter-bot --help # For help
-$ mars-rover-twitter-bot --period-in-hours 24
+$ mars-rover-twitter-bot --offset-in-hours 72 # Start from 72 hours ago
 ```
 
 ## Environment variables

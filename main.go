@@ -65,8 +65,8 @@ func init() {
 	twitterAPI = anaconda.NewTwitterApi(twitterAccessToken, twitterAccessSecret)
 }
 
-func tweetPhotos(periodInHours uint) error {
-	offsetTime := time.Now().Add(-1 * time.Duration(periodInHours) * time.Hour)
+func tweetPhotos(offsetInHours uint) error {
+	offsetTime := time.Now().Add(-1 * time.Duration(offsetInHours) * time.Hour)
 	startTime := &offsetTime
 
 	marsPhotos, err := roverClient.MarsPhotos(startTime)
@@ -79,8 +79,8 @@ func tweetPhotos(periodInHours uint) error {
 		return fmt.Errorf("no photos for %q", startTime)
 	}
 
-	// Distribute the photos over periodInhours
-	rawHourlyDistribution := float32(periodInHours) / float32(len(photos))
+	// Distribute the photos over a 24 hour period
+	rawHourlyDistribution := 24.0 / float32(len(photos))
 	hours := int(rawHourlyDistribution)
 	minutes := int(math.Ceil(60 * float64(rawHourlyDistribution-float32(hours))))
 	pausePeriod := (time.Duration(hours) * time.Hour) + (time.Duration(minutes) * time.Minute)
@@ -91,14 +91,34 @@ func tweetPhotos(periodInHours uint) error {
 		// tweet the photo
 		photo := photos[i]
 		log.Printf("#%d: About to tweet %#v\n", i, photo)
-		tweetPhoto(photo)
-		<-ticker
+		select {
+		case err := <-tweetIt(photo, pausePeriod):
+			log.Printf("#%d: After tweeting err=%v\n", i, err)
+		case <-ticker:
+			log.Printf("#%d: Timedout", i)
+		}
 	}
 
 	return nil
 }
 
-const tweetMsg = `PhotoId {{.Id}} Taken on {{.EarthDate}} by Rover {{.Rover.Name}} aka {{.Rover.ShortName}} launched on {{.Rover.LaunchDate}}`
+func tweetIt(mphoto *nasa.MarsPhoto, period time.Duration) chan error {
+	resultChan := make(chan error)
+	go func() {
+		defer close(resultChan)
+		startTime := time.Now()
+		endTime := startTime.Add(period)
+		err := tweetPhoto(mphoto)
+		now := time.Now()
+		if endTime.After(now) {
+			<-time.Tick(endTime.Sub(now))
+		}
+		resultChan <- err
+	}()
+	return resultChan
+}
+
+const tweetMsg = `Taken by camera {{.Camera.ShortName}}, on {{.EarthDate}} by Rover {{.Rover.Name}} launched on {{.Rover.LaunchDate}}. PhotoID: {{.Id}}`
 
 var tweetTmpl = template.Must(template.New("marsPhotoTweet").Parse(tweetMsg))
 
@@ -115,11 +135,13 @@ func tweetPhoto(mphoto *nasa.MarsPhoto) error {
 		return fmt.Errorf("expecting an image URL")
 	}
 	statusMsg, err := composeTweet(mphoto)
+	log.Printf("composed tweet %q err=%v\n", statusMsg, err)
 	if err != nil {
 		return err
 	}
 
 	base64OfImage, err := imageBase64(mphoto.ImageURL)
+	log.Printf("making base64OfImage %s err=%v\n", mphoto.ImageURL, err)
 	if err != nil {
 		return err
 	}
@@ -160,11 +182,11 @@ func imageBase64(uri string) (string, error) {
 }
 
 func main() {
-	var periodInHours uint
-	flag.UintVar(&periodInHours, "period-in-hours", 24, "the period of the bot in hours")
+	var offsetInHours uint
+	flag.UintVar(&offsetInHours, "offset-in-hours", 24, "the number of hours offset from right now from which we should retrieve photos")
 	flag.Parse()
 
 	for {
-		tweetPhotos(periodInHours)
+		tweetPhotos(offsetInHours)
 	}
 }
