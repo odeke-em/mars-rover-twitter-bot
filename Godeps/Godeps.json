@@ -1,0 +1,35 @@
+{
+	"ImportPath": "github.com/odeke-em/mars-rover-twitter-bot",
+	"GoVersion": "devel",
+	"GodepVersion": "v60",
+	"Deps": [
+		{
+			"ImportPath": "github.com/ChimeraCoder/anaconda",
+			"Rev": "00ecb7b4510497dc28cd46a598007ab8fe01f889"
+		},
+		{
+			"ImportPath": "github.com/ChimeraCoder/tokenbucket",
+			"Rev": "c5a927568de7aad8a58127d80bcd36ca4e71e454"
+		},
+		{
+			"ImportPath": "github.com/azr/backoff",
+			"Rev": "53511d3c733003985b0b76f733df1f4d0095ee6a"
+		},
+		{
+			"ImportPath": "github.com/dustin/go-jsonpointer",
+			"Rev": "ba0abeacc3dcca5b9b20f31509c46794edbc9965"
+		},
+		{
+			"ImportPath": "github.com/dustin/gojson",
+			"Rev": "2e71ec9dd5adce3b168cd0dbde03b5cc04951c30"
+		},
+		{
+			"ImportPath": "github.com/garyburd/go-oauth/oauth",
+			"Rev": "1dd5f05ec64cbda548d22836ceb6cc7ae749c2ee"
+		},
+		{
+			"ImportPath": "github.com/odeke-em/nasa",
+			"Rev": "6e12d90cf1edba07f4aee0446882f27161d1ea8b"
+		}
+	]
+}
